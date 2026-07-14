@@ -23,27 +23,27 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	err = Vault.Unlock(masterKey)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	LoadError := Vault.Load()
+	newVault := false
+	if LoadError != nil {
+		if errors.Is(LoadError, os.ErrNotExist) {
+			newVault = true
+		} else {
+			fmt.Printf("error while loading the vault: %v", LoadError)
+			return
+		}
+	}
 
 	switch os.Args[1] {
 	case "add":
 		if len(os.Args) < 4 {
 			fmt.Println("Usage: checkpass [add/get] [service] [password]")
 			return
-		}
-		err := Vault.Unlock(masterKey)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		LoadError := Vault.Load()
-		newVault := false
-		if LoadError != nil {
-			if errors.Is(LoadError, os.ErrNotExist) {
-				newVault = true
-			} else {
-				fmt.Printf("error while loading the vault: %v", LoadError)
-				return
-			}
 		}
 		ok, err := Vault.AddCredential(os.Args[2], os.Args[3])
 		if err != nil {
@@ -64,21 +64,6 @@ func main() {
 		if len(os.Args) != 3 {
 			fmt.Println("Usage: checkpass [add/get] [service] [password]")
 			return
-		}
-		err := Vault.Unlock(masterKey)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		LoadError := Vault.Load()
-		if LoadError != nil {
-			if errors.Is(LoadError, os.ErrNotExist) {
-				fmt.Println("First run: no vault is stored")
-				return
-			} else {
-				fmt.Printf("error while loading the vault: %v", LoadError)
-				return
-			}
 		}
 		password, status := Vault.GetCredential(os.Args[2])
 		if status != nil {
